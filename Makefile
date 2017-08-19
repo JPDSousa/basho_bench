@@ -6,7 +6,7 @@ PKG_ID           = basho-bench-$(PKG_VERSION)
 PKG_BUILD        = 1
 BASE_DIR         = $(shell pwd)
 ERLANG_BIN       = $(shell dirname $(shell which erl))
-REBAR           ?= $(BASE_DIR)/rebar
+REBAR           ?= ./rebar
 OVERLAY_VARS    ?=
 
 
