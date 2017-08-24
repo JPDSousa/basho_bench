@@ -12,9 +12,9 @@
 -export([new/1,
   run/4]).
 
--include_lib("basho_bench/include/basho_bench.hrl").
+-include_lib("basho_bench.hrl").
 
--record(state, {actor, artists, albums}).
+-record(state, {actor, artists = [], albums = []}).
 
 
 %% ====================================================================
@@ -24,55 +24,75 @@
 new(Id) ->
   Actors = basho_bench_config:get(aql_actors, []),
   Nth    = (Id - 1) rem length(Actors) + 1,
-  {Name, Node} = Actor = lists:nth(Nth, Actors),
-  case net_adm:ping(Node) of
+  {Name, AQLNode, AntidoteNode} = lists:nth(Nth, Actors),
+  case net_adm:ping(AQLNode) of
     pang ->
-      lager:error("~s is not available", [Node]),
-      {ok, #state{actor = undefined, artists = [], albums = []}};
+      lager:error("~s is not available", [AQLNode]),
+      {error, "Connection error", #state{actor = undefined}};
 
     pong ->
-      lager:info("worker ~b is bound to ~s on ~s", [Id, Name, Node]),
-      {ok, #state{actor = Actor}}
+      lager:info("worker ~b is bound to ~s on ~s", [Id, Name, AQLNode]),
+      {ok, #state{actor = {Name, {AQLNode, AntidoteNode}}}}
   end.
 
-run(get, KeyGen, _ValGen, #state{actor={_Name, Node}} = State) ->
+run(get, KeyGen, ValGen, #state{actor={_Name, Node}} = State) ->
+  ?DEBUG("get: begin", []),
   Key = KeyGen(),
-  KeyStr = integer_to_list(Key),
-  Table = integer_to_table(Key rem 2, undefined, undefined),
+  KeyStr = create_key(Key),
+  Value = ValGen(),
+  Table = integer_to_table(Value, undefined, undefined),
   Query = lists:concat(["SELECT * FROM ", Table, " WHERE Name = ", KeyStr]),
-  exec(Node, Query),
-  {ok, State};
-run(put, KeyGen, _ValGen, #state{actor={_Name, Node}, artists=Artists, albums=Albums} = State) ->
+  ?DEBUG("get: query->", [Query]),
+  Res = exec(Node, Query),
+  ?DEBUG("get: res->~p", [Res]),
+  case Res of
+    {ok, _} ->
+      {ok, State};
+    {err, Reason} ->
+      ?ERROR("Error in select query: ~p", [Reason]),
+      {error, Reason, State}
+  end;
+run(put, KeyGen, ValGen, #state{actor={_Name, Node}, artists=Artists, albums=Albums} = State) ->
+  ?INFO("Put", []),
   Key = KeyGen(),
-  KeyStr = integer_to_list(Key),
-  Table = integer_to_table(Key rem 2, Artists, Albums),
+  KeyStr = create_key(Key),
+  Value = ValGen(),
+  Table = integer_to_table(Value, Artists, Albums),
   Values = gen_values(KeyStr, Table, Artists, Albums),
   Query = lists:concat(["INSERT INTO ", Table, " VALUES ", Values]),
+  ?DEBUG("put query: ~p", [Query]),
   case exec(Node, Query) of
     {ok, _} ->
       {NewArtists, NewAlbums} = put_value(Table, Key, Artists, Albums),
       {ok, State#state{artists=NewArtists, albums=NewAlbums}};
     {err, Err} ->
       lager:error("Error in insert query: ~p", [Err]),
-      {ok, State}
-  end,
-  {ok, State};
-run(delete, KeyGen, _ValGen, #state{actor={_Name, Node}, artists=Artists, albums=Albums} = State) ->
+      {error, Err, State}
+  end;
+run(delete, KeyGen, ValGen, #state{actor={_Name, Node}, artists=Artists, albums=Albums} = State) ->
+  ?INFO("Delete", []),
   Key = KeyGen(),
-  KeyStr = integer_to_list(Key),
-  Table = integer_to_table(Key rem 2, Artists, Albums),
+  KeyStr = create_key(Key),
+  Value = ValGen(),
+  Table = integer_to_table(Value, Artists, Albums),
   Query = lists:concat(["DELETE FROM ", Table, " WHERE Name = ", KeyStr]),
+  ?DEBUG("DELETE query: ~p", [Query]),
   case exec(Node, Query) of
     {ok, _} ->
       {NewArtists, NewAlbums} = del_value(Table, Key, Artists, Albums),
       {ok, State#state{artists=NewArtists, albums=NewAlbums}};
     {err, Err} ->
       lager:error("Error in delete query: ~p", [Err]),
-      {ok, State}
-  end.
+      {error, Err, State}
+  end;
+run(Op, _KeyGen, _ValGen, _State) ->
+  lager:warning("Unrecognized operation: ~p", [Op]).
 
-exec(Node, Query) ->
-  rpc:call(Node, aqlparser, parse, [{str, Query}]).
+exec({AQLNode, AntidoteNode}, Query) ->
+  rpc:call(AQLNode, aqlparser, parse, [{str, Query}, AntidoteNode]).
+
+create_key(Key) ->
+  lists:concat(["'", integer_to_list(Key), "'"]).
 
 put_value("Artist", Key, Artists, Albums) ->
   {Artists ++ [Key], Albums};
@@ -91,9 +111,9 @@ del_value("Track", _Key, Artists, Albums) ->
 gen_values(Key, "Artist", _, _) ->
   lists:concat(["(", Key, ")"]);
 gen_values(Key, "Album", [Artist | _Artists], _) ->
-  lists:concat(["(", Key, ", ", Artist, ")"]);
+  lists:concat(["(", Key, ", '", Artist, "')"]);
 gen_values(Key, "Track", _, [Album | _Albums]) ->
-  lists:concat(["(", Key, ", ", Album, ")"]).
+  lists:concat(["(", Key, ", '", Album, "')"]).
 
 integer_to_table(0, _, _) -> "Artist";
 integer_to_table(1, [], _) -> "Artist";
