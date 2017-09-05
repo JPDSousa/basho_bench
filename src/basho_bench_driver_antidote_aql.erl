@@ -43,9 +43,7 @@ run(get, KeyGen, ValGen, #state{actor={_Name, Node}} = State) ->
   Table = integer_to_table(Value, undefined, undefined),
   Query = lists:concat(["SELECT * FROM ", Table, " WHERE Name = ", KeyStr]),
   ?DEBUG("get: query->", [Query]),
-  Res = exec(Node, Query),
-  ?DEBUG("get: res->~p", [Res]),
-  case Res of
+  case exec(Node, Query) of
     {ok, _} ->
       {ok, State};
     {err, Reason} ->
@@ -83,6 +81,17 @@ run(delete, KeyGen, ValGen, #state{actor={_Name, Node}, artists=Artists, albums=
       {ok, State#state{artists=NewArtists, albums=NewAlbums}};
     {err, Err} ->
       lager:error("Error in delete query: ~p", [Err]),
+      {error, Err, State}
+  end;
+run(get_all, _KeyGen, ValGen, #state{actor={_Name, Node}} = State) ->
+  ?INFO("Select all", []),
+  Table = integer_to_table(ValGen(), undefined, undefined),
+  Query = lists:concat(["SELECT * FROM ", Table]),
+  case exec(Node, Query) of
+    {ok, _} ->
+      {ok, State};
+    {err, Err} ->
+      lager:error("Error in select all query: ~p", [Err]),
       {error, Err, State}
   end;
 run(Op, _KeyGen, _ValGen, _State) ->
