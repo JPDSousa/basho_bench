@@ -12,3 +12,7 @@ package
 \.idea/
 
 basho_bench\.iml
+
+\.Rhistory
+
+current

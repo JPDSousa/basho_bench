@@ -36,13 +36,12 @@ new(Id) ->
   end.
 
 run(get, KeyGen, ValGen, #state{actor={_Name, Node}} = State) ->
-  ?DEBUG("get: begin", []),
+  ?DEBUG("get", []),
   Key = KeyGen(),
   KeyStr = create_key(Key),
   Value = ValGen(),
   Table = integer_to_table(Value, undefined, undefined),
   Query = lists:concat(["SELECT * FROM ", Table, " WHERE Name = ", KeyStr]),
-  ?DEBUG("get: query->", [Query]),
   case exec(Node, Query) of
     {ok, _} ->
       {ok, State};
@@ -55,10 +54,10 @@ run(put, KeyGen, ValGen, #state{actor={_Name, Node}, artists=Artists, albums=Alb
   Key = KeyGen(),
   KeyStr = create_key(Key),
   Value = ValGen(),
+  ?DEBUG("Value: ~p", [Value]),
   Table = integer_to_table(Value, Artists, Albums),
   Values = gen_values(KeyStr, Table, Artists, Albums),
   Query = lists:concat(["INSERT INTO ", Table, " VALUES ", Values]),
-  ?DEBUG("put query: ~p", [Query]),
   case exec(Node, Query) of
     {ok, _} ->
       {NewArtists, NewAlbums} = put_value(Table, Key, Artists, Albums),
@@ -74,7 +73,6 @@ run(delete, KeyGen, ValGen, #state{actor={_Name, Node}, artists=Artists, albums=
   Value = ValGen(),
   Table = integer_to_table(Value, Artists, Albums),
   Query = lists:concat(["DELETE FROM ", Table, " WHERE Name = ", KeyStr]),
-  ?DEBUG("DELETE query: ~p", [Query]),
   case exec(Node, Query) of
     {ok, _} ->
       {NewArtists, NewAlbums} = del_value(Table, Key, Artists, Albums),
@@ -104,9 +102,9 @@ create_key(Key) ->
   lists:concat(["'", integer_to_list(Key), "'"]).
 
 put_value("Artist", Key, Artists, Albums) ->
-  {Artists ++ [Key], Albums};
+  {[Key | Artists], Albums};
 put_value("Album", Key, Artists, Albums) ->
-  {Artists, Albums ++ [Key]};
+  {Artists, [Key | Albums]};
 put_value("Track", _Key, Artists, Albums) ->
   {Artists, Albums}.
 
@@ -124,10 +122,10 @@ gen_values(Key, "Album", [Artist | _Artists], _) ->
 gen_values(Key, "Track", _, [Album | _Albums]) ->
   lists:concat(["(", Key, ", '", Album, "')"]).
 
-integer_to_table(0, _, _) -> "Artist";
-integer_to_table(1, [], _) -> "Artist";
-integer_to_table(1, _, _) -> "Album";
-integer_to_table(2, [], []) -> "Artist";
-integer_to_table(2, _, []) -> "Album";
-integer_to_table(2, _, _) -> "Track".
+integer_to_table(1, _, _) -> "Artist";
+integer_to_table(2, [], _) -> "Artist";
+integer_to_table(2, _, _) -> "Album";
+integer_to_table(3, [], []) -> "Artist";
+integer_to_table(3, _, []) -> "Album";
+integer_to_table(3, _, _) -> "Track".
 
