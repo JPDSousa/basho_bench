@@ -24,7 +24,7 @@
 new(Id) ->
   Actors = basho_bench_config:get(aql_actors, []),
   Nth    = (Id - 1) rem length(Actors) + 1,
-  {Ip} = lists:nth(Nth, Actors),
+  Ip = lists:nth(Nth, Actors),
   AQLNode = lists:concat(["aql@", Ip]),
   AntidoteNode = lists:concat(["antidote@", Ip]),
   case net_adm:ping(AQLNode) of
