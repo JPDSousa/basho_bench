@@ -25,8 +25,10 @@ new(Id) ->
   Actors = basho_bench_config:get(aql_actors, []),
   Nth    = (Id - 1) rem length(Actors) + 1,
   Ip = lists:nth(Nth, Actors),
-  AQLNode = lists:concat(["aql@", Ip]),
-  AntidoteNode = lists:concat(["antidote@", Ip]),
+  AQLNodeStr = lists:concat(["aql@", Ip]),
+  AntidoteNodeStr = lists:concat(["antidote@", Ip]),
+  AQLNode = list_to_atom(AQLNodeStr),
+  AntidoteNode = list_to_atom(AntidoteNodeStr),
   case net_adm:ping(AQLNode) of
     pang ->
       lager:error("~s is not available", [AQLNode]),
