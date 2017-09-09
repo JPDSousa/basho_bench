@@ -24,18 +24,20 @@
 new(Id) ->
   Actors = basho_bench_config:get(aql_actors, []),
   Nth    = (Id - 1) rem length(Actors) + 1,
-  {Name, AQLNode, AntidoteNode} = lists:nth(Nth, Actors),
+  {Ip} = lists:nth(Nth, Actors),
+  AQLNode = lists:concat(["aql@", Ip]),
+  AntidoteNode = lists:concat(["antidote@", Ip]),
   case net_adm:ping(AQLNode) of
     pang ->
       lager:error("~s is not available", [AQLNode]),
       {error, "Connection error", #state{actor = undefined}};
 
     pong ->
-      lager:info("worker ~b is bound to ~s on ~s", [Id, Name, AQLNode]),
-      {ok, #state{actor = {Name, {AQLNode, AntidoteNode}}}}
+      lager:info("worker ~b is bound to ~s", [Id, AQLNode]),
+      {ok, #state{actor = {AQLNode, AntidoteNode}}}
   end.
 
-run(get, KeyGen, ValGen, #state{actor={_Name, Node}} = State) ->
+run(get, KeyGen, ValGen, #state{actor=Node} = State) ->
   ?DEBUG("get", []),
   Key = KeyGen(),
   KeyStr = create_key(Key),
@@ -49,7 +51,7 @@ run(get, KeyGen, ValGen, #state{actor={_Name, Node}} = State) ->
       ?ERROR("Error in select query: ~p", [Reason]),
       {error, Reason, State}
   end;
-run(put, KeyGen, ValGen, #state{actor={_Name, Node}, artists=Artists, albums=Albums} = State) ->
+run(put, KeyGen, ValGen, #state{actor=Node, artists=Artists, albums=Albums} = State) ->
   ?INFO("Put", []),
   Key = KeyGen(),
   KeyStr = create_key(Key),
@@ -66,7 +68,7 @@ run(put, KeyGen, ValGen, #state{actor={_Name, Node}, artists=Artists, albums=Alb
       lager:error("Error in insert query: ~p", [Err]),
       {error, Err, State}
   end;
-run(delete, KeyGen, ValGen, #state{actor={_Name, Node}, artists=Artists, albums=Albums} = State) ->
+run(delete, KeyGen, ValGen, #state{actor=Node, artists=Artists, albums=Albums} = State) ->
   ?INFO("Delete", []),
   Key = KeyGen(),
   KeyStr = create_key(Key),
@@ -81,7 +83,7 @@ run(delete, KeyGen, ValGen, #state{actor={_Name, Node}, artists=Artists, albums=
       lager:error("Error in delete query: ~p", [Err]),
       {error, Err, State}
   end;
-run(get_all, _KeyGen, ValGen, #state{actor={_Name, Node}} = State) ->
+run(get_all, _KeyGen, ValGen, #state{actor=Node} = State) ->
   ?INFO("Select all", []),
   Table = integer_to_table(ValGen(), undefined, undefined),
   Query = lists:concat(["SELECT * FROM ", Table]),
