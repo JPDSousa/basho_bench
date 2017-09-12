@@ -46,7 +46,8 @@ distclean: clean
 	@rm -rf basho_bench deps
 
 results:
-	Rscript --vanilla priv/summary.r -i tests/current
+	chmod u+x ./scripts/all_results.sh
+	./scripts/all_results.sh
 
 ops_sec-results: results
 
