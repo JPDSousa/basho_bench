@@ -45,8 +45,12 @@ clean:
 distclean: clean
 	@rm -rf basho_bench deps
 
+bench: all
+	sudo chmod u+x ./scripts/run_aql_bench.sh
+	./scripts/run_aql_bench.sh
+
 results:
-	chmod u+x ./scripts/all_results.sh
+	sudo chmod u+x ./scripts/all_results.sh
 	./scripts/all_results.sh
 
 ops_sec-results: results
