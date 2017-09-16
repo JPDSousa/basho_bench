@@ -23,9 +23,10 @@
 
 new(Id) ->
   Actors = basho_bench_config:get(aql_actors, []),
+  Shell = basho_bench_config:get(aql_shell, "aql"),
   Nth    = (Id - 1) rem length(Actors) + 1,
   Ip = lists:nth(Nth, Actors),
-  AQLNodeStr = lists:concat(["aql@", Ip]),
+  AQLNodeStr = lists:concat([Shell, "@", Ip]),
   AntidoteNodeStr = lists:concat(["antidote@", Ip]),
   AQLNode = list_to_atom(AQLNodeStr),
   AntidoteNode = list_to_atom(AntidoteNodeStr),
