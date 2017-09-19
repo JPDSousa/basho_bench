@@ -11,5 +11,5 @@ sed -i "s/BASHOIP/$MY_IP/g" ./scripts/connect_dcs.escript
 echo "Done"
 
 echo "Writing ips to escript file"
-sed -i "s/Nodes/[\"$1\", \"$2\", \"$3\"]/g" ./scriptsconnect_dcs.escript
+sed -i "s/Nodes/[\"$1\", \"$2\", \"$3\"]/g" ./scripts/connect_dcs.escript
 echo "Done"
