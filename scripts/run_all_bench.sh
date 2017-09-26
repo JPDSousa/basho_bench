@@ -21,6 +21,7 @@ sed -i "s/Nodes/[\"$1\", \"$2\", \"$3\"]/g" ./scripts/connect_dcs.escript
 
 @echo "Preparing ssh connections"
 ./scripts/ssh_setup.sh
+@echo "Done"
 
 for f in ./config/*.config
 do
