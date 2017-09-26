@@ -1,5 +1,16 @@
 #!/usr/bin/env bash
 
+echo "Fetching self public ip..."
+MY_IP=$(curl v4.ifconfig.co)
+BASHO_NODE_NAME="basho@$MY_IP"
+sed -i "s/BASHOIP/$MY_IP/g" ./scripts/connect_dcs.escript
+echo "Done"
+
+echo "Writing ips to escript file"
+sed -i "s/Nodes/[\"$1\", \"$2\", \"$3\"]/g" ./scripts/connect_dcs.escript
+echo "Done"
+
+
 echo "Starting antidote instances"
 ssh jpdsousa@$1 "screen -S antidote -d -m ./init_antidote.sh"
 ssh jpdsousa@$2 "screen -S antidote -d -m ./init_antidote.sh"
