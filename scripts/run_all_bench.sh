@@ -20,14 +20,15 @@ sed -i "s/Nodes/[\"$1\", \"$2\", \"$3\"]/g" ./scripts/connect_dcs.escript
 echo "Done"
 
 echo "Preparing ssh connections"
-./scripts/ssh_setup.sh
+./scripts/ssh_setup.sh $1 $2 $3
 echo "Done"
 
 for f in ./config/*.config
 do
-
+  ./scripts/ssh_antidote_start.sh $1 $2 $3
   echo "Running $f"
   ./basho_bench $f -N $BASHO_NODE_NAME -C antidote
+  ./scripts/ssh_antidote_kill.sh $1 $2 $3
   echo "[5] Cooling down..."
   sleep 1m
   echo "[4] Cooling down..."
