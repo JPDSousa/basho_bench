@@ -68,4 +68,6 @@ run(Op, _KeyGen, _ValGen, State) ->
   {err, Reason, State}.
 
 exec(AntidoteNode, Method, Query) ->
-  rpc:call(AntidoteNode, antidote, Method, [{str, Query}]).
+  {ok, TxId} = rpc:call(AntidoteNode, antidote, start_transaction, [ignore, []]),
+  rpc:call(AntidoteNode, antidote, Method, [[Query], TxId]),
+  rpc:call(AntidoteNode, antidote, commit_transaction, [TxId]).
