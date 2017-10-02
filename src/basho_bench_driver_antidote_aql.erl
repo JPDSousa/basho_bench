@@ -36,7 +36,15 @@ new(Id) ->
       {error, "Connection error", #state{actor = undefined}};
     pong ->
       lager:info("worker ~b is bound to ~s", [Id, AQLNode]),
-      create_schema(AQLNode, AntidoteNode),
+      case Id of
+        1 ->
+          create_schema(AQLNode, AntidoteNode);
+        2 ->
+          create_schema(AQLNode, AntidoteNode);
+        3 ->
+          create_schema(AQLNode, AntidoteNode);
+        _Else -> ok
+      end,
       {ok, #state{actor = {AQLNode, AntidoteNode}}}
   end.
 
