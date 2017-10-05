@@ -23,7 +23,7 @@ echo "Preparing ssh connections"
 ./scripts/ssh_setup.sh $1 $2 $3
 echo "Done"
 
-for f in "${4:-./config/*.config}"
+for f in ${4:-./config/*.config}
 do
   ./scripts/ssh_antidote_start.sh $1 $2 $3
   echo "Running $f"
