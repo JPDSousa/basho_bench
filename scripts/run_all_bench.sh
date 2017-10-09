@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 
-echo "Resetting repo"
-git reset --hard
-git pull
 make all
 
 echo "Writing ips to config files..."
