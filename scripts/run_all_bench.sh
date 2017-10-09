@@ -1,12 +1,9 @@
 #!/usr/bin/env bash
 
-echo "Resetting repo"
-git reset --hard
-git pull
 make all
 
 echo "Writing ips to config files..."
-sed -i "s/Nodes/[\"$1\", \"$2\", \"$3\"]/g" ./config/*.config
+sed -i "s/Nodes/[\"$1\", \"$2\", \"$3\"]/g" ./config/**/*.config
 echo "Done"
 
 echo "Fetching self public ip..."
