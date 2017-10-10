@@ -52,12 +52,14 @@ run(get, KeyGen, ValGen, #state{actor=Node} = State) ->
   Value = ValGen(),
   Table = integer_to_table(Value, undefined, undefined),
   Query = lists:concat(["SELECT * FROM ", Table, " WHERE Name = ", KeyStr]),
-  case exec(Node, Query) of
+  try exec(Node, Query) of
     {ok, _} ->
       {ok, State};
-    Reason ->
+    {error, Reason} ->
       ?ERROR("Error in select query: ~p", [Reason]),
-      {ok, State}
+      {error, Reason, State}
+  catch
+    Throw -> {error, Throw, State}
   end;
 run(put, KeyGen, ValGen, #state{actor=Node, artists=Artists, albums=Albums} = State) ->
   ?INFO("Put", []),
@@ -68,13 +70,15 @@ run(put, KeyGen, ValGen, #state{actor=Node, artists=Artists, albums=Albums} = St
   Table = integer_to_table(Value, Artists, Albums),
   Values = gen_values(KeyStr, Table, Artists, Albums),
   Query = lists:concat(["INSERT INTO ", Table, " VALUES ", Values]),
-  case exec(Node, Query) of
+  try exec(Node, Query) of
     {ok, _} ->
       {NewArtists, NewAlbums} = put_value(Table, Key, Artists, Albums),
       {ok, State#state{artists=NewArtists, albums=NewAlbums}};
-    Err ->
+    {error, Err} ->
       lager:error("Error in insert query: ~p", [Err]),
-      {ok, State}
+      {error, Err, State}
+  catch
+    Throw -> {error, Throw, State}
   end;
 run(delete, KeyGen, ValGen, #state{actor=Node, artists=Artists, albums=Albums} = State) ->
   ?INFO("Delete", []),
@@ -83,13 +87,15 @@ run(delete, KeyGen, ValGen, #state{actor=Node, artists=Artists, albums=Albums} =
   Value = ValGen(),
   Table = integer_to_table(Value, Artists, Albums),
   Query = lists:concat(["DELETE FROM ", Table, " WHERE Name = ", KeyStr]),
-  case exec(Node, Query) of
+  try exec(Node, Query) of
     {ok, _} ->
       {NewArtists, NewAlbums} = del_value(Table, Key, Artists, Albums),
       {ok, State#state{artists=NewArtists, albums=NewAlbums}};
-    Err ->
+    {error, Err} ->
       lager:error("Error in delete query: ~p", [Err]),
-      {ok, State}
+      {error, Err, State}
+  catch
+    Throw -> {error, Throw, State}
   end;
 run(get_all, _KeyGen, ValGen, #state{actor=Node} = State) ->
   ?INFO("Select all", []),
@@ -98,7 +104,7 @@ run(get_all, _KeyGen, ValGen, #state{actor=Node} = State) ->
   case exec(Node, Query) of
     {ok, _} ->
       {ok, State};
-    Err ->
+    {error, Err} ->
       lager:error("Error in select all query: ~p", [Err]),
       {error, Err, State}
   end;
