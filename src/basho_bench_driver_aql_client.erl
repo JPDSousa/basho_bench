@@ -55,7 +55,7 @@ run(get, KeyGen, ValGen, #state{actor=Node} = State) ->
   case exec(Node, Query) of
     {ok, _} ->
       {ok, State};
-    {error, Reason} ->
+    Reason ->
       ?ERROR("Error in select query: ~p", [Reason]),
       {error, Reason, State}
   end;
@@ -72,7 +72,7 @@ run(put, KeyGen, ValGen, #state{actor=Node, artists=Artists, albums=Albums} = St
     {ok, _} ->
       {NewArtists, NewAlbums} = put_value(Table, Key, Artists, Albums),
       {ok, State#state{artists=NewArtists, albums=NewAlbums}};
-    {error, Err} ->
+    Err ->
       lager:error("Error in insert query: ~p", [Err]),
       {error, Err, State}
   end;
@@ -87,7 +87,7 @@ run(delete, KeyGen, ValGen, #state{actor=Node, artists=Artists, albums=Albums} =
     {ok, _} ->
       {NewArtists, NewAlbums} = del_value(Table, Key, Artists, Albums),
       {ok, State#state{artists=NewArtists, albums=NewAlbums}};
-    {error, Err} ->
+    Err ->
       lager:error("Error in delete query: ~p", [Err]),
       {error, Err, State}
   end;
@@ -98,7 +98,7 @@ run(get_all, _KeyGen, ValGen, #state{actor=Node} = State) ->
   case exec(Node, Query) of
     {ok, _} ->
       {ok, State};
-    {error, Err} ->
+    Err ->
       lager:error("Error in select all query: ~p", [Err]),
       {error, Err, State}
   end;
