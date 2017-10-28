@@ -31,7 +31,7 @@ cat > $config_file <<- EOM
 
 {aql_actors, Nodes}.
 
-{operations, [{put, $w_put},{get, $w_get}, {delete, $w_delete}, {get_all, $w_all}]}.
+{operations, [{put, $w_put},{get, $w_get}, {delete, $w_del}, {get_all, $w_all}]}.
 EOM
 clients=$[$clients+10]
 done
