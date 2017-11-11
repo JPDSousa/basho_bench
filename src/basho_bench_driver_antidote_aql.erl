@@ -48,7 +48,6 @@ new(Id) ->
   end.
 
 run(get, KeyGen, ValGen, #state{actor=Node} = State) ->
-  ?DEBUG("get", []),
   Key = KeyGen(),
   KeyStr = create_key(Key),
   Value = ValGen(),
@@ -62,7 +61,6 @@ run(get, KeyGen, ValGen, #state{actor=Node} = State) ->
       {error, Reason, State}
   end;
 run(put, KeyGen, ValGen, #state{actor=Node, artists=Artists, albums=Albums} = State) ->
-  ?INFO("Put", []),
   Key = KeyGen(),
   KeyStr = create_key(Key),
   Value = ValGen(),
@@ -79,7 +77,6 @@ run(put, KeyGen, ValGen, #state{actor=Node, artists=Artists, albums=Albums} = St
       {error, Err, State}
   end;
 run(delete, KeyGen, ValGen, #state{actor=Node, artists=Artists, albums=Albums} = State) ->
-  ?INFO("Delete", []),
   Key = KeyGen(),
   KeyStr = create_key(Key),
   Value = ValGen(),
@@ -94,7 +91,6 @@ run(delete, KeyGen, ValGen, #state{actor=Node, artists=Artists, albums=Albums} =
       {error, Err, State}
   end;
 run(get_all, _KeyGen, ValGen, #state{actor=Node} = State) ->
-  ?INFO("Select all", []),
   Table = integer_to_table(ValGen(), undefined, undefined),
   Query = lists:concat(["SELECT * FROM ", Table]),
   case exec(Node, Query) of

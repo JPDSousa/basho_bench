@@ -45,7 +45,6 @@ new(Id) ->
   end.
 
 run(get, KeyGen, ValGen, #state{actor=Node} = State) ->
-  ?DEBUG("get", []),
   Key = KeyGen(),
   KeyStr = create_key(Key),
   Value = ValGen(),
@@ -61,11 +60,9 @@ run(get, KeyGen, ValGen, #state{actor=Node} = State) ->
     Throw -> {error, Throw, State}
   end;
 run(put, KeyGen, ValGen, #state{actor=Node, artists=Artists, albums=Albums} = State) ->
-  ?INFO("Put", []),
   Key = KeyGen(),
   KeyStr = create_key(Key),
   Value = ValGen(),
-  ?DEBUG("Value: ~p", [Value]),
   Table = integer_to_table(Value, Artists, Albums),
   Values = gen_values(KeyStr, Table, Artists, Albums),
   Query = lists:concat(["INSERT INTO ", Table, " VALUES ", Values]),
@@ -80,7 +77,6 @@ run(put, KeyGen, ValGen, #state{actor=Node, artists=Artists, albums=Albums} = St
     Throw -> {error, Throw, State}
   end;
 run(delete, KeyGen, ValGen, #state{actor=Node, artists=Artists, albums=Albums} = State) ->
-  ?INFO("Delete", []),
   Key = KeyGen(),
   KeyStr = create_key(Key),
   Value = ValGen(),

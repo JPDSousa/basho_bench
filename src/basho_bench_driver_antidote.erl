@@ -36,7 +36,6 @@ new(Id) ->
   end.
 
 run(get, KeyGen, ValGen, #state{actor=Node} = State) ->
-  ?DEBUG("get", []),
   Key = KeyGen(),
   KeyStr = integer_to_list(Key),
   Value = ValGen(),
@@ -48,7 +47,6 @@ run(get, KeyGen, ValGen, #state{actor=Node} = State) ->
       {error, Reason, State}
   end;
 run(put, KeyGen, ValGen, #state{actor=Node} = State) ->
-  ?INFO("Put", []),
   Key = KeyGen(),
   KeyStr = integer_to_list(Key),
   Value = ValGen(),
