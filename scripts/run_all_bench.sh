@@ -6,8 +6,8 @@ echo "Done"
 
 echo "Writing ips to config files..."
 sed -i "s/Nodes/[\"$1\"]/g" ./config/**/*.config
-SED4 = "s/Nodes/[\"$2\"]/g"
-SED5 = "s/Nodes/[\"$3\"]/g"
+SED4="s/Nodes/[\"$2\"]/g"
+SED5="s/Nodes/[\"$3\"]/g"
 ssh jpdsousa@$4 "cd basho_bench && git reset --hard && git pull && sed -i $SED4 ./config/**/*.config"
 ssh jpdsousa@$5 "cd basho_bench && git reset --hard && git pull && sed -i $SED5 ./config/**/*.config"
 echo "Done"
