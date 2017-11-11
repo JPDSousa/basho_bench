@@ -6,8 +6,10 @@ echo "Done"
 
 echo "Writing ips to config files..."
 sed -i "s/Nodes/[\"$1\"]/g" ./config/**/*.config
-ssh jpdsousa@$4 'sed -i "s/Nodes/[\"$2\"]/g" ./basho_bench/config/**/*.config'
-ssh jpdsousa@$5 'sed -i "s/Nodes/[\"$3\"]/g" ./basho_bench/config/**/*.config'
+SED4 = "s/Nodes/[\"$2\"]/g"
+SED5 = "s/Nodes/[\"$3\"]/g"
+ssh jpdsousa@$4 "cd basho_bench && git reset --hard && git pull && sed -i $SED4 ./config/**/*.config"
+ssh jpdsousa@$5 "cd basho_bench && git reset --hard && git pull && sed -i $SED5 ./config/**/*.config"
 echo "Done"
 
 echo "Fetching self public ip..."
@@ -20,7 +22,7 @@ echo "Writing ips to escript file"
 sed -i "s/Nodes/[\"$1\", \"$2\", \"$3\"]/g" ./scripts/connect_dcs.escript
 echo "Done"
 
-for f in ${6:-./config/*.config}
+for f in ${6:-./config/**/*.config}
 do
   ./scripts/ssh_antidote_start.sh $1 $2 $3
   echo "Running $f"
