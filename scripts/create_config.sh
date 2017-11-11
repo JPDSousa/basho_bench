@@ -55,9 +55,6 @@ cat > $config_file <<- EOM
 {aql_actors, Nodes}.
 
 {operations, [{put, $w_put},{get, $w_get}, {delete, $w_del}]}.
-
-{remote_nodes, [{'jpdbasho2.westeurope.cloudapp.azure.com', basho}, {'jpdbasho3.japaneast.cloudapp.azure.com', basho}]}.
-{distributed_work, true}.
 EOM
 clients=$[$clients+$gap_clients]
 done
