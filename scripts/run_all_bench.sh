@@ -26,8 +26,8 @@ for f in ${6:-./config/**/*.config}
 do
   ./scripts/ssh_antidote_start.sh $1 $2 $3
   echo "Running $f"
-  ssh jpdsousa@$4 "screen -S basho -d -m ./basho_bench $f -N basho2@$4 -C antidote"
-  ssh jpdsousa@$5 "screen -S basho -d -m ./basho_bench $f -N basho3@$5 -C antidote"
+  ssh jpdsousa@$4 "screen -S basho -d -m ./basho_bench/basho_bench $f -N basho2@$4 -C antidote"
+  ssh jpdsousa@$5 "screen -S basho -d -m ./basho_bench/basho_bench $f -N basho3@$5 -C antidote"
   ./basho_bench $f -N $BASHO_NODE_NAME -C antidote
   ./scripts/ssh_antidote_kill.sh $1 $2 $3
   echo "[5] Cooling down..."
