@@ -49,7 +49,7 @@ run(get, KeyGen, ValGen, #state{actor=Node} = State) ->
     {ok, _} ->
       {ok, State};
     {error, Reason} ->
-      {error, Reason, State}
+      {ok, State}
   end;
 run(put, KeyGen, ValGen, #state{actor=Node, artists=Artists, albums=Albums} = State) ->
   Key = KeyGen(),
@@ -63,7 +63,7 @@ run(put, KeyGen, ValGen, #state{actor=Node, artists=Artists, albums=Albums} = St
       {NewArtists, NewAlbums} = put_value(Table, Key, Artists, Albums),
       {ok, State#state{artists=NewArtists, albums=NewAlbums}};
     {error, Err} ->
-      {error, Err, State}
+      {ok, State}
   end;
 run(delete, KeyGen, ValGen, #state{actor=Node, artists=Artists, albums=Albums} = State) ->
   Key = KeyGen(),
@@ -76,16 +76,7 @@ run(delete, KeyGen, ValGen, #state{actor=Node, artists=Artists, albums=Albums} =
       {NewArtists, NewAlbums} = del_value(Table, Key, Artists, Albums),
       {ok, State#state{artists=NewArtists, albums=NewAlbums}};
     {error, Err} ->
-      {error, Err, State}
-  end;
-run(get_all, _KeyGen, ValGen, #state{actor=Node} = State) ->
-  Table = integer_to_table(ValGen(), undefined, undefined),
-  Query = lists:concat(["SELECT * FROM ", Table]),
-  case exec(Node, Query) of
-    {ok, _} ->
-      {ok, State};
-    {error, Err} ->
-      {error, Err, State}
+      {ok, State}
   end;
 run(Op, _KeyGen, _ValGen, _State) ->
   lager:warning("Unrecognized operation: ~p", [Op]).
