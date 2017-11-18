@@ -91,7 +91,7 @@ create_schema(1, AQLNode, AntidoteNode) ->
   exec({AQLNode, AntidoteNode}, ArtistsQuery),
   exec({AQLNode, AntidoteNode}, AlbumsQuery),
   exec({AQLNode, AntidoteNode}, TracksQuery);
-create_schema(_, _) -> ok.
+create_schema(_, _, _) -> ok.
 
 create_key(Key) ->
   lists:concat(["'", integer_to_list(Key), "'"]).
