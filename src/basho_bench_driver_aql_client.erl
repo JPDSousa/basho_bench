@@ -93,7 +93,8 @@ create_schema(1, AntidoteNode) ->
   TracksQuery = "CREATE @AW TABLE Track (Title VARCHAR PRIMARY KEY, Album VARCHAR FOREIGN KEY @FR REFERENCES Album(Title));",
   exec(AntidoteNode, ArtistsQuery),
   exec(AntidoteNode, AlbumsQuery),
-  exec(AntidoteNode, TracksQuery).
+  exec(AntidoteNode, TracksQuery);
+create_schema(_, _) -> ok.
 
 create_key(Key) ->
   lists:concat(["'", integer_to_list(Key), "'"]).
