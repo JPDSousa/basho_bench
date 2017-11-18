@@ -35,15 +35,7 @@ new(Id) ->
       {error, "Connection error", #state{actor = undefined}};
     pong ->
       lager:info("worker ~b is bound to ~s", [Id, AQLNode]),
-      case Id of
-        1 ->
-          create_schema(AQLNode, AntidoteNode);
-        2 ->
-          create_schema(AQLNode, AntidoteNode);
-        3 ->
-          create_schema(AQLNode, AntidoteNode);
-        _Else -> ok
-      end,
+      create_schema(Id, AQLNode, AntidoteNode),
       {ok, #state{actor = {AQLNode, AntidoteNode}}}
   end.
 
@@ -101,13 +93,13 @@ run(Op, _KeyGen, _ValGen, _State) ->
 exec({AQLNode, AntidoteNode}, Query) ->
   rpc:call(AQLNode, aqlparser, parse, [{str, Query}, AntidoteNode]).
 
-create_schema(AQLNode, AntidoteNode) ->
+create_schema(1, AQLNode, AntidoteNode) ->
   ArtistsQuery = "CREATE @AW TABLE Artist (Name VARCHAR PRIMARY KEY);",
   AlbumsQuery = "CREATE @AW TABLE Album (Title VARCHAR PRIMARY KEY, Artist VARCHAR FOREIGN KEY @FR REFERENCES Artist(Name));",
   TracksQuery = "CREATE @AW TABLE Track (Title VARCHAR PRIMARY KEY, Album VARCHAR FOREIGN KEY @FR REFERENCES Album(Title));",
-  rpc:call(AQLNode, aqlparser, parse, [{str, ArtistsQuery}, AntidoteNode]),
-  rpc:call(AQLNode, aqlparser, parse, [{str, AlbumsQuery}, AntidoteNode]),
-  rpc:call(AQLNode, aqlparser, parse, [{str, TracksQuery}, AntidoteNode]).
+  exec({AQLNode, AntidoteNode}, ArtistsQuery),
+  exec({AQLNode, AntidoteNode}, AlbumsQuery),
+  exec({AQLNode, AntidoteNode}, TracksQuery).
 
 create_key(Key) ->
   lists:concat(["'", integer_to_list(Key), "'"]).
