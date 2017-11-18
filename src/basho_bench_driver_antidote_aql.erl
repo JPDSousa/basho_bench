@@ -57,14 +57,12 @@ run(get, KeyGen, ValGen, #state{actor=Node} = State) ->
     {ok, _} ->
       {ok, State};
     {error, Reason} ->
-      ?ERROR("Error in select query: ~p", [Reason]),
       {error, Reason, State}
   end;
 run(put, KeyGen, ValGen, #state{actor=Node, artists=Artists, albums=Albums} = State) ->
   Key = KeyGen(),
   KeyStr = create_key(Key),
   Value = ValGen(),
-  ?DEBUG("Value: ~p", [Value]),
   Table = integer_to_table(Value, Artists, Albums),
   Values = gen_values(KeyStr, Table, Artists, Albums),
   Query = lists:concat(["INSERT INTO ", Table, " VALUES ", Values]),
@@ -73,7 +71,6 @@ run(put, KeyGen, ValGen, #state{actor=Node, artists=Artists, albums=Albums} = St
       {NewArtists, NewAlbums} = put_value(Table, Key, Artists, Albums),
       {ok, State#state{artists=NewArtists, albums=NewAlbums}};
     {error, Err} ->
-      lager:error("Error in insert query: ~p", [Err]),
       {error, Err, State}
   end;
 run(delete, KeyGen, ValGen, #state{actor=Node, artists=Artists, albums=Albums} = State) ->
@@ -87,7 +84,6 @@ run(delete, KeyGen, ValGen, #state{actor=Node, artists=Artists, albums=Albums} =
       {NewArtists, NewAlbums} = del_value(Table, Key, Artists, Albums),
       {ok, State#state{artists=NewArtists, albums=NewAlbums}};
     {error, Err} ->
-      lager:error("Error in delete query: ~p", [Err]),
       {error, Err, State}
   end;
 run(get_all, _KeyGen, ValGen, #state{actor=Node} = State) ->
@@ -97,7 +93,6 @@ run(get_all, _KeyGen, ValGen, #state{actor=Node} = State) ->
     {ok, _} ->
       {ok, State};
     {error, Err} ->
-      lager:error("Error in select all query: ~p", [Err]),
       {error, Err, State}
   end;
 run(Op, _KeyGen, _ValGen, _State) ->

@@ -43,7 +43,6 @@ run(get, KeyGen, ValGen, #state{actor=Node} = State) ->
     {ok, _} ->
       {ok, State};
     {error, Reason} ->
-      ?ERROR("Error in get operation: ~p", [Reason]),
       {error, Reason, State}
   end;
 run(put, KeyGen, ValGen, #state{actor=Node} = State) ->
@@ -57,7 +56,6 @@ run(put, KeyGen, ValGen, #state{actor=Node} = State) ->
     {ok, _} ->
       {ok, State};
     {error, Err} ->
-      lager:error("Error in put operation: ~p", [Err]),
       {error, Err, State}
   end;
 run(Op, _KeyGen, _ValGen, State) ->
