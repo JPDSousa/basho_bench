@@ -32,15 +32,7 @@ new(Id) ->
       {error, "Connection error", #state{actor = undefined}};
     pong ->
       lager:info("worker ~b is bound to ~s", [Id, AntidoteNode]),
-      case Id of
-        1 ->
-          create_schema(AntidoteNode);
-        2 ->
-          create_schema(AntidoteNode);
-        3 ->
-          create_schema(AntidoteNode);
-        _Else -> ok
-      end,
+      create_schema(Id, AntidoteNode),
       {ok, #state{actor = AntidoteNode}}
   end.
 
@@ -54,10 +46,9 @@ run(get, KeyGen, ValGen, #state{actor=Node} = State) ->
     {ok, _} ->
       {ok, State};
     {error, Reason} ->
-      ?ERROR("Error in select query: ~p", [Reason]),
-      {error, Reason, State}
+      {ok, State}
   catch
-    Throw -> {error, Throw, State}
+    Throw -> {ok, State}
   end;
 run(put, KeyGen, ValGen, #state{actor=Node, artists=Artists, albums=Albums} = State) ->
   Key = KeyGen(),
@@ -71,9 +62,9 @@ run(put, KeyGen, ValGen, #state{actor=Node, artists=Artists, albums=Albums} = St
       {NewArtists, NewAlbums} = put_value(Table, Key, Artists, Albums),
       {ok, State#state{artists=NewArtists, albums=NewAlbums}};
     {error, Err} ->
-      {error, Err, State}
+      {ok, State}
   catch
-    Throw -> {error, Throw, State}
+    Throw -> {ok, State}
   end;
 run(delete, KeyGen, ValGen, #state{actor=Node, artists=Artists, albums=Albums} = State) ->
   Key = KeyGen(),
@@ -86,19 +77,9 @@ run(delete, KeyGen, ValGen, #state{actor=Node, artists=Artists, albums=Albums} =
       {NewArtists, NewAlbums} = del_value(Table, Key, Artists, Albums),
       {ok, State#state{artists=NewArtists, albums=NewAlbums}};
     {error, Err} ->
-      {error, Err, State}
+      {ok, State}
   catch
     Throw -> {error, Throw, State}
-  end;
-run(get_all, _KeyGen, ValGen, #state{actor=Node} = State) ->
-  ?INFO("Select all", []),
-  Table = integer_to_table(ValGen(), undefined, undefined),
-  Query = lists:concat(["SELECT * FROM ", Table]),
-  case exec(Node, Query) of
-    {ok, _} ->
-      {ok, State};
-    {error, Err} ->
-      {error, Err, State}
   end;
 run(Op, _KeyGen, _ValGen, _State) ->
   lager:warning("Unrecognized operation: ~p", [Op]).
@@ -106,13 +87,14 @@ run(Op, _KeyGen, _ValGen, _State) ->
 exec(AntidoteNode, Query) ->
   aqlparser:parse({str, Query}, AntidoteNode).
 
-create_schema(AntidoteNode) ->
+create_schema(1, AntidoteNode) ->
   ArtistsQuery = "CREATE @AW TABLE Artist (Name VARCHAR PRIMARY KEY);",
   AlbumsQuery = "CREATE @AW TABLE Album (Title VARCHAR PRIMARY KEY, Artist VARCHAR FOREIGN KEY @FR REFERENCES Artist(Name));",
   TracksQuery = "CREATE @AW TABLE Track (Title VARCHAR PRIMARY KEY, Album VARCHAR FOREIGN KEY @FR REFERENCES Album(Title));",
-  aqlparser:parse({str, ArtistsQuery}, AntidoteNode),
-  aqlparser:parse({str, AlbumsQuery}, AntidoteNode),
-  aqlparser:parse({str, TracksQuery}, AntidoteNode).
+  exec(AntidoteNode, ArtistsQuery),
+  exec(AntidoteNode, AlbumsQuery),
+  exec(AntidoteNode, TracksQuery);
+create_schema(_, _) -> ok.
 
 create_key(Key) ->
   lists:concat(["'", integer_to_list(Key), "'"]).
