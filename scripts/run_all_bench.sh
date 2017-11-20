@@ -1,33 +1,32 @@
 #!/usr/bin/env bash
 
+git reset --hard
 echo "Preparing ssh connections"
-./scripts/ssh_setup.sh $1 $2 $3 $4 $5
+./scripts/ssh_setup.sh $1 $2 $3 $5 $6
 echo "Done"
 
 echo "Writing ips to config files..."
 sed -i "s/Nodes/[\"$1\"]/g" ./config/**/*.config
-SED4="\"s/Nodes/[\\\"$2\\\"]/g\""
-SED5="\"s/Nodes/[\\\"$3\\\"]/g\""
-ssh jpdsousa@$4 "cd basho_bench && git reset --hard && git pull && sed -i $SED4 ./config/**/*.config"
+SED5="\"s/Nodes/[\\\"$2\\\"]/g\""
+SED6="\"s/Nodes/[\\\"$3\\\"]/g\""
 ssh jpdsousa@$5 "cd basho_bench && git reset --hard && git pull && sed -i $SED5 ./config/**/*.config"
+ssh jpdsousa@$6 "cd basho_bench && git reset --hard && git pull && sed -i $SED6 ./config/**/*.config"
 echo "Done"
 
-echo "Fetching self public ip..."
-MY_IP=$(curl v4.ifconfig.co)
-BASHO_NODE_NAME="basho@$MY_IP"
-sed -i "s/BASHOIP/$MY_IP/g" ./scripts/connect_dcs.escript
+BASHO_NODE_NAME="basho@$4"
+sed -i "s/BASHOIP/$4/g" ./scripts/connect_dcs.escript
 echo "Done"
 
 echo "Writing ips to escript file"
 sed -i "s/Nodes/[\"$1\", \"$2\", \"$3\"]/g" ./scripts/connect_dcs.escript
 echo "Done"
 
-for f in ${6:-./config/**/*.config}
+for f in ${7:-./config/**/*.config}
 do
   ./scripts/ssh_antidote_start.sh $1 $2 $3
   echo "Running $f"
-  ssh jpdsousa@$4 "epmd -daemon && cd basho_bench && screen -S basho -d -m ./basho_bench $f -N basho@$4 -C antidote"
   ssh jpdsousa@$5 "epmd -daemon && cd basho_bench && screen -S basho -d -m ./basho_bench $f -N basho@$5 -C antidote"
+  ssh jpdsousa@$6 "epmd -daemon && cd basho_bench && screen -S basho -d -m ./basho_bench $f -N basho@$6 -C antidote"
   ./basho_bench $f -N $BASHO_NODE_NAME -C antidote
   ./scripts/ssh_antidote_kill.sh $1 $2 $3
   echo "[5] Cooling down..."
