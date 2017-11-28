@@ -44,7 +44,11 @@ do
   echo $MSG >> $LOG_FILE
   ssh jpdsousa@$5 "epmd -daemon && cd basho_bench && screen -S basho -d -m ./basho_bench $f -N basho@$5 -C antidote"
   ssh jpdsousa@$6 "epmd -daemon && cd basho_bench && screen -S basho -d -m ./basho_bench $f -N basho@$6 -C antidote"
-  ./basho_bench $f -N $BASHO_NODE_NAME -C antidote
+  screen -S basho -d -m ./basho_bench $f -N $BASHO_NODE_NAME -C antidote
+  sleep 6m
+  ssh jpdsousa@$5 "pkill -f basho"
+  ssh jpdsousa@$6 "pkill -f basho"
+  pkill -f basho
   MSG="Benchmark complete. Stopping antidote and AQL"
   echo $MSG
   echo $MSG >> $LOG_FILE
