@@ -12,7 +12,7 @@ done
 read -p "Driver index (start on 0): " driver_index
 if [ $driver_index -eq 0 ]
 then
-read -p "Use dummy? [y/n] " dummy
+read -p "Use dummy? [y/d/n] " dummy
 else
 dummy="aql"
 fi
@@ -29,6 +29,9 @@ read -p "Delete: " w_del
 if [ "$dummy" == "y" ]
 then
 dummy="aqldummy"
+elif [ "$dummy" == "d" ]
+then
+dummy="aqlcascade"
 else
 dummy="aql"
 fi
