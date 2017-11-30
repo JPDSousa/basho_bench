@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
 echo "Starting antidote instances"
-ssh jpdsousa@$1 "screen -S antidote -d -m ./init_antidote.sh"
-ssh jpdsousa@$2 "screen -S antidote -d -m ./init_antidote.sh"
-ssh jpdsousa@$3 "screen -S antidote -d -m ./init_antidote.sh"
+ssh jpdsousa@$1 "epmd -daemon && screen -S antidote -d -m ./init_antidote.sh"
+ssh jpdsousa@$2 "epmd -daemon && screen -S antidote -d -m ./init_antidote.sh"
+ssh jpdsousa@$3 "epmd -daemon && screen -S antidote -d -m ./init_antidote.sh"
 echo "Done"
 
 sleep 2m
