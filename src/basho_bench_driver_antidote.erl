@@ -39,7 +39,7 @@ run(get, KeyGen, ValGen, #state{actor=Node} = State) ->
   Key = KeyGen(),
   KeyStr = integer_to_list(Key),
   Value = ValGen(),
-  case exec(Node, read_objects, {KeyStr, antidote_crdt_gmap, Value}) of
+  case exec(Node, read_objects, {KeyStr, antidote_crdt_gmap, Value}, KeyGen()) of
     {ok, _} ->
       {ok, State};
     {error, Reason} ->
@@ -52,7 +52,7 @@ run(put, KeyGen, ValGen, #state{actor=Node} = State) ->
   Obj = {{KeyStr, antidote_crdt_gmap, Value}, update, [{keyA, antidote_crdt_integer, {set, 5}},
     {keyB, antidote_crdt_integer, {set, 5}},
     {keyC, antidote_crdt_integer, {set, 5}}]},
-  case exec(Node, update_objects, Obj) of
+  case exec(Node, update_objects, Obj, KeyGen()) of
     {ok, _} ->
       {ok, State};
     {error, Err} ->
@@ -62,7 +62,13 @@ run(Op, _KeyGen, _ValGen, State) ->
   Reason = lists:concat(["Unrecognized operation: ", Op]),
   {err, Reason, State}.
 
-exec(AntidoteNode, Method, Query) ->
+exec(AntidoteNode, Method, Query, ExtraKey) ->
   {ok, TxId} = rpc:call(AntidoteNode, antidote, start_transaction, [ignore, []]),
+  case Method of
+    update_objects ->
+      rpc:call(AntidoteNode, antidote, read_objects, [[{ExtraKey, antidote_crdt_gmap, random}], TxId]);
+    _Else ->
+      ok
+  end,
   rpc:call(AntidoteNode, antidote, Method, [[Query], TxId]),
   rpc:call(AntidoteNode, antidote, commit_transaction, [TxId]).
