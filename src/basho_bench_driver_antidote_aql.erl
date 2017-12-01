@@ -48,7 +48,7 @@ run(get, KeyGen, ValGen, #state{actor=Node} = State) ->
   case exec(Node, Query) of
     {ok, _} ->
       {ok, State};
-    {error, Reason} ->
+    {error, _Reason} ->
       {ok, State}
   end;
 run(put, KeyGen, ValGen, #state{actor=Node, artists=Artists, albums=Albums} = State) ->
@@ -62,7 +62,7 @@ run(put, KeyGen, ValGen, #state{actor=Node, artists=Artists, albums=Albums} = St
     {ok, _} ->
       {NewArtists, NewAlbums} = put_value(Table, Key, Artists, Albums),
       {ok, State#state{artists=NewArtists, albums=NewAlbums}};
-    {error, Err} ->
+    {error, _Err} ->
       {ok, State}
   end;
 run(delete, KeyGen, ValGen, #state{actor=Node, artists=Artists, albums=Albums} = State) ->
@@ -75,7 +75,7 @@ run(delete, KeyGen, ValGen, #state{actor=Node, artists=Artists, albums=Albums} =
     {ok, _} ->
       {NewArtists, NewAlbums} = del_value(Table, Key, Artists, Albums),
       {ok, State#state{artists=NewArtists, albums=NewAlbums}};
-    {error, Err} ->
+    {error, _Err} ->
       {ok, State}
   end;
 run(Op, _KeyGen, _ValGen, _State) ->

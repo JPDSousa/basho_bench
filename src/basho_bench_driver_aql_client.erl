@@ -64,7 +64,7 @@ run(put, KeyGen, ValGen, #state{actor=Node, artists=Artists, albums=Albums} = St
     {error, Err} ->
       {ok, State}
   catch
-    Throw -> {ok, State}
+    _Throw -> {ok, State}
   end;
 run(delete, KeyGen, ValGen, #state{actor=Node, artists=Artists, albums=Albums} = State) ->
   Key = KeyGen(),
